@@ -241,6 +241,68 @@ def pdf_A4():
     pdfFile.save()
     print('OK')
 
+def make_flashcard():
+    global problemslist
+    global testlist
+
+    pdfFile = canvas.Canvas('./Flashcard.pdf')
+    pdfFile.saveState()
+    #後でテストファイルを開く処理入れる
+
+    #テストを捨てようかと思ったけど、これを更新し続ければよくね
+
+    pdfFile.setAuthor('Croma')
+    pdfFile.setTitle('テスト作成')
+    pdfFile.setSubject('Flashcard')
+
+    #この下をif文でコントロールする→A4,B5をグローバル変数にでもするか
+    #→ファイルを読み取って、それを初期値とするシークバープログラム
+    # A4
+    pdfFile.setPageSize((21.0*cm, 29.7*cm))
+    # B5
+    # pdfFile.setPageSize((18.2*cm, 25.7*cm))
+
+    #タイトル
+    pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
+    pdfFile.setFont('HeiseiKakuGo-W5', 65)
+    pdfFile.drawString(2.28*cm, 14.25*cm, '%s'%testlist[0][0])
+
+    pdfFile.showPage() #1ページ目確定
+
+    #単語番号
+    pdfFile.setFont('HeiseiKakuGo-W5',30)
+
+    Hightstart = 26.6 #2回宣言しないと一回使うとなくなる
+    for i in range(0,len(problemslist),1):
+
+        pdfFile.drawString(0.5*cm, Hightstart*cm, '%s.'% str(i+1))
+
+        pdfFile.drawString(3*cm, Hightstart*cm,'%s'%testlist[problemslist[i]][1])
+
+        pdfFile.drawString(10*cm, Hightstart*cm,'%s'%testlist[problemslist[i]][2])
+
+        Hightstart -= 3
+
+        if i % 9 == 8 :
+            #print('OK')
+            pdfFile.showPage() #1ページ目確定
+            pdfFile.setFont('HeiseiKakuGo-W5',30)
+            Hightstart = 26.6
+
+    pdfFile.save()
+
+    print('OK')
+
+    pdfpath = os.path.abspath('Flashcard.pdf')
+    print(pdfpath)
+
+    process = open_pdf("%s"%pdfpath, page=1)
+    process.wait()
+
+    print('OK2')
+
+
+
 def set_file(x):
     #path = testfilepath
     f = open(x,encoding='utf-8')
@@ -248,7 +310,7 @@ def set_file(x):
     testlist = []
 
     for i in pretestlist:
-        testlist.append(i.split())
+        testlist.append(i.strip().split('|'))
 
     words = len(testlist) - 1 #ファイル内の単語数
 
@@ -343,7 +405,7 @@ cb2 = ttk.Combobox(root, textvariable=orders)
 cb2.bind('<<ComboboxSelected>>', cb2_seleted)
 #ComboboxSelectedはしっかりそういう名前にしとかないとinter動かん
 
-cb2['values'] = ('順番')#('昇順','ランダム')
+cb2['values'] = ('')#('昇順','ランダム')
 cb2.set('順番')
 cb2.pack()
 
@@ -352,5 +414,9 @@ make_test_Button = tk.Button(root,text='テスト作成')
 make_test_Button['command'] = make_test
 make_test_Button.pack()
 
+
+make_flashcard_Button = tk.Button(root,text='単語帳を作成')
+make_flashcard_Button['command'] = make_flashcard
+make_flashcard_Button.pack()
 
 root.mainloop()#ここがループすることによって動いている、故最後
